@@ -1,0 +1,7 @@
+main: "cc.dreamcode.spigot.achievements.AchievementsPlugin"
+version: "1.0-InDEV"
+name: "dream-achievements"
+description: "dream-achievements plugin written by dreamcode.cc"
+website: "https://dreamcode.cc"
+author: "trueman96"
+api-version: 1.13

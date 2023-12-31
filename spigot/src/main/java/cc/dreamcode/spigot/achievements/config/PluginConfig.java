@@ -1,0 +1,97 @@
+package cc.dreamcode.spigot.achievements.config;
+
+import cc.dreamcode.menu.bukkit.BukkitMenuBuilder;
+import cc.dreamcode.platform.bukkit.component.configuration.Configuration;
+import cc.dreamcode.platform.persistence.StorageConfig;
+import cc.dreamcode.spigot.achievements.achievement.Achievement;
+import cc.dreamcode.spigot.achievements.achievement.AchievementReward;
+import cc.dreamcode.spigot.achievements.achievement.AchievementType;
+import cc.dreamcode.utilities.builder.MapBuilder;
+import cc.dreamcode.utilities.bukkit.builder.ItemBuilder;
+import com.cryptomorin.xseries.XMaterial;
+import eu.okaeri.configs.OkaeriConfig;
+import eu.okaeri.configs.annotation.*;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+@Configuration(
+        child = "config.yml"
+)
+@Header("## dream-achievements (Main-Config) ##")
+@Names(strategy = NameStrategy.HYPHEN_CASE, modifier = NameModifier.TO_LOWER_CASE)
+public class PluginConfig extends OkaeriConfig {
+    @Comment("Debug pokazuje dodatkowe informacje do konsoli. Lepiej wylaczyc. :P")
+    public boolean debug = true;
+
+    @Comment("Uzupelnij ponizsze menu danymi.")
+    public StorageConfig storageConfig = new StorageConfig("dreamtemplate");
+
+    public AchievementsConfig achievementsConfig = new AchievementsConfig();
+
+    @Names(strategy = NameStrategy.HYPHEN_CASE, modifier = NameModifier.TO_LOWER_CASE)
+    public static class AchievementsConfig extends OkaeriConfig {
+
+        public Map<AchievementType, List<Achievement>> achievementMap;
+
+        @Comment("Pamiętaj by zmienić sloty jeszcze poniżej!!")
+        public BukkitMenuBuilder achievementMenuBuilder;
+
+        public Map<Integer, AchievementType> achievementTypeSlot = new HashMap<>();
+
+        public AchievementsConfig() {
+            int i = 10;
+            for (AchievementType value : AchievementType.values()) {
+                this.achievementTypeSlot.put(i, value);
+                i++;
+            }
+            this.achievementMenuBuilder = new BukkitMenuBuilder("&0Osiągnięcia", 3, new MapBuilder<Integer, ItemStack>()
+                    .putAll(IntStream.range(0, 27).boxed()
+                            .collect(
+                                    Collectors.toMap(
+                                            j -> j,
+                                            j -> XMaterial.BLACK_STAINED_GLASS_PANE.parseItem(),
+                                            (a, b) -> b)
+                            )
+                    )
+                    .put(10, ItemBuilder.of(XMaterial.DIAMOND_SWORD.parseMaterial())
+                            .setName("&aZabójstwa")
+                            .toItemStack())
+                    .put(11, ItemBuilder.of(XMaterial.FISHING_ROD.parseMaterial())
+                            .setName("&eZdobyty ranking")
+                            .toItemStack())
+                    .put(12, ItemBuilder.of(XMaterial.PLAYER_HEAD.parseItem())
+                            .setName("&cŚmierci")
+                            .toItemStack())
+                    .build());
+            this.achievementMap = new MapBuilder<AchievementType, List<Achievement>>()
+                    .put(
+                            AchievementType.SPEND_TIME,
+                            Collections.singletonList(
+                                    Achievement.builder()
+                                            .id(1)
+                                            .type(AchievementType.SPEND_TIME)
+                                            .reward(AchievementReward.builder()
+                                                    .friendlyName("1x Kompas")
+                                                    .itemStack(ItemBuilder.of(Material.COMPASS).toItemStack())
+                                                    .build())
+                                            .required(TimeUnit.HOURS.toMillis(1))
+                                            .build()
+                            )
+                    )
+                    .build();
+        }
+
+        public List<Achievement> findByType(AchievementType type) {
+            return this.achievementMap.get(type);
+        }
+    }
+
+}
