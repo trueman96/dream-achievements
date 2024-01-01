@@ -3,6 +3,7 @@ package cc.dreamcode.spigot.achievements.listener;
 import cc.dreamcode.spigot.achievements.user.AchievementsUser;
 import cc.dreamcode.spigot.achievements.user.AchievementsUserCache;
 import cc.dreamcode.spigot.achievements.user.AchievementsUserRepository;
+import eu.okaeri.configs.ConfigManager;
 import eu.okaeri.injector.annotation.Inject;
 import eu.okaeri.persistence.PersistencePath;
 import eu.okaeri.persistence.document.DocumentPersistence;
@@ -33,8 +34,9 @@ public class PlayerQuitJoinListener implements Listener {
         this.tasker.newChain()
                 .supplyAsync(() -> {
                     AchievementsUser achievementsUser = this.achievementsUserRepository.findByPath(source.getUniqueId()).orElseGet(() -> {
-                        AchievementsUser user = (AchievementsUser) this.documentPersistence.createDocument(
-                                this.achievementsUserRepository.getCollection(), PersistencePath.of(source.getUniqueId().toString()));
+                        AchievementsUser user = (AchievementsUser) this.documentPersistence.update(ConfigManager.create(AchievementsUser.class),
+                                this.achievementsUserRepository.getCollection());
+                        user.setPath(PersistencePath.of(source.getUniqueId().toString()));
                         user.setClaimedAchievements(new HashSet<>());
                         user.setAchievementProgress(new HashMap<>());
                         return user;
@@ -42,7 +44,10 @@ public class PlayerQuitJoinListener implements Listener {
                     achievementsUser.setName(source.getName());
                     return achievementsUser;
                 })
-                .acceptAsync(this.achievementsUserCache::add)
+                .acceptAsync(achievementsUser -> {
+                    achievementsUser.setLastTimeMeasurement(System.currentTimeMillis());
+                    this.achievementsUserCache.add(achievementsUser);
+                })
                 .execute();
     }
 

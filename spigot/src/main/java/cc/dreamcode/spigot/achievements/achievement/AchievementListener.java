@@ -13,6 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
@@ -116,5 +117,28 @@ public class AchievementListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onPlace(BlockPlaceEvent event) {
+        Player player = event.getPlayer();
+        ItemStack itemInHand = player.getItemInHand();
+        if (itemInHand.getItemMeta() == null || !itemInHand.getItemMeta().hasLore() || !itemInHand.getItemMeta().hasDisplayName()) {
+            return;
+        }
+
+        ItemStack caseItem = this.pluginConfig.premiumCaseItemStack;
+        if (!itemInHand.isSimilar(caseItem)) {
+            return;
+        }
+
+        AchievementsUser user = this.achievementsUserCache.findByUniqueId(player.getUniqueId());
+        if (user == null) {
+            return;
+        }
+
+        user.addAchievementProgress(AchievementType.OPENED_CASE, 1);
+        if (this.pluginConfig.debug) {
+            this.dreamLogger.info("BlockPlaceEvent: " + player.getName() + " placed case");
+        }
+    }
 
 }

@@ -1,19 +1,21 @@
 package cc.dreamcode.spigot.achievements.achievement;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import eu.okaeri.configs.OkaeriConfig;
+import lombok.*;
 
 @Getter
 @Builder
 @ToString
-public class Achievement {
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class Achievement extends OkaeriConfig {
 
-    private final int id;
+    private int id;
 
-    private final AchievementType type;
-    private final AchievementReward reward;
-    private final long required;
+    private AchievementType type;
+    private AchievementReward reward;
+    private long required;
 
     public String getUniqueId() {
         return type.toString() + "-" + id;

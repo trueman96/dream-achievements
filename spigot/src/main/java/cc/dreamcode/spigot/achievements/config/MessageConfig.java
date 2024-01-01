@@ -26,4 +26,7 @@ public class MessageConfig extends OkaeriConfig {
 
 
     public BukkitNotice invalidItem = BukkitNotice.of(MinecraftNoticeType.CHAT, "&cPodany item jest nieprawidłowy, prawdopodbnie jest powietrzem.");
+    public BukkitNotice noAchievementsForType = BukkitNotice.of(MinecraftNoticeType.CHAT, "&cNie znaleziono zadnych osiagniec dla typu {type}.");
+    public BukkitNotice receivedReward = BukkitNotice.of(MinecraftNoticeType.CHAT, "&aOtrzymano nagrode {reward} za osiagniecie {achievement}.");
+    public BukkitNotice cannotReceive = BukkitNotice.of(MinecraftNoticeType.CHAT, "&cNie mozesz odebrać nagrody {reward} za osiagniecie {achievement} &f{progress}&7/&f{required}&c.");
 }

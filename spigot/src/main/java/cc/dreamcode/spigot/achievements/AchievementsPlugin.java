@@ -93,7 +93,7 @@ public final class AchievementsPlugin extends DreamBukkitPlatform implements Dre
             Optional.ofNullable(this.getServer().getPluginManager().getPlugin("PlaceholderAPI"))
                     .ifPresent(plugin -> {
                         componentManager.registerComponent(PointsChangeListener.class);
-                        getInject(DreamLogger.class).ifPresent(dreamLogger -> dreamLogger.info("FunnyGuilds found, hooking into FunnyGuilds"));
+                        getInject(DreamLogger.class).ifPresent(dreamLogger -> dreamLogger.info("PlaceholderAPI found, hooking into PlaceholderAPI"));
                     });
         });
     }

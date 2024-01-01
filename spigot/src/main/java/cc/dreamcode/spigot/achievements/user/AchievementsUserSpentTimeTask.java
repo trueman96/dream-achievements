@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-@Scheduler(delay = 30 * 20L, interval = 30 * 20L)
+@Scheduler(delay = 5 * 20L, interval = 5 * 20L)
 @RequiredArgsConstructor(onConstructor_ = @Inject)
 public class AchievementsUserSpentTimeTask implements Runnable {
 

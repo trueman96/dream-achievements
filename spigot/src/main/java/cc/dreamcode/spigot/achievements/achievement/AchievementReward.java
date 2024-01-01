@@ -1,16 +1,18 @@
 package cc.dreamcode.spigot.achievements.achievement;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import eu.okaeri.configs.OkaeriConfig;
+import lombok.*;
 import org.bukkit.inventory.ItemStack;
 
 @Getter
 @Builder
 @ToString
-public class AchievementReward {
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AchievementReward extends OkaeriConfig {
 
-    private final String friendlyName;
-    private final ItemStack itemStack;
+    private String friendlyName;
+    private ItemStack itemStack;
 
 }
