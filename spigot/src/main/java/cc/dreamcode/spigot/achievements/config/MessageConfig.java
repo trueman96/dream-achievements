@@ -25,4 +25,5 @@ public class MessageConfig extends OkaeriConfig {
     public BukkitNotice playerIsMe = new BukkitNotice(MinecraftNoticeType.CHAT, "&4Nie rob tego &cna sobie.");
 
 
+    public BukkitNotice invalidItem = BukkitNotice.of(MinecraftNoticeType.CHAT, "&cPodany item jest nieprawidłowy, prawdopodbnie jest powietrzem.");
 }

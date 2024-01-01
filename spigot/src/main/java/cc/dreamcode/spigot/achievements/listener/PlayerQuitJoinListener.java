@@ -1,6 +1,7 @@
 package cc.dreamcode.spigot.achievements.listener;
 
 import cc.dreamcode.spigot.achievements.user.AchievementsUser;
+import cc.dreamcode.spigot.achievements.user.AchievementsUserCache;
 import cc.dreamcode.spigot.achievements.user.AchievementsUserRepository;
 import eu.okaeri.injector.annotation.Inject;
 import eu.okaeri.persistence.PersistencePath;
@@ -13,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +24,7 @@ public class PlayerQuitJoinListener implements Listener {
 
     private final Tasker tasker;
     private final DocumentPersistence documentPersistence;
+    private final AchievementsUserCache achievementsUserCache;
     private final AchievementsUserRepository achievementsUserRepository;
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -39,9 +42,17 @@ public class PlayerQuitJoinListener implements Listener {
                     achievementsUser.setName(source.getName());
                     return achievementsUser;
                 })
-                .acceptAsync(user -> {
+                .acceptAsync(this.achievementsUserCache::add)
+                .execute();
+    }
 
-                })
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onQuit(@NonNull PlayerQuitEvent event) {
+        Player source = event.getPlayer();
+        this.tasker.newChain()
+                .supplyAsync(() -> this.achievementsUserCache.findByUniqueId(source.getUniqueId()))
+                .acceptAsync(AchievementsUser::save)
+                .acceptAsync(this.achievementsUserCache::remove)
                 .execute();
     }
 }

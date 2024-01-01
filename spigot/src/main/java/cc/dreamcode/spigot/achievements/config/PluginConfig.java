@@ -25,73 +25,136 @@ import java.util.stream.IntStream;
 @Configuration(
         child = "config.yml"
 )
-@Header("## dream-achievements (Main-Config) ##")
+@Header({
+        "## dream-achievements (Main-Config) ##",
+        "##",
+        "## Placeholders:",
+        "## %achievements-user_spent-time% - Spędzony czas na serwerze",
+})
 @Names(strategy = NameStrategy.HYPHEN_CASE, modifier = NameModifier.TO_LOWER_CASE)
 public class PluginConfig extends OkaeriConfig {
     @Comment("Debug pokazuje dodatkowe informacje do konsoli. Lepiej wylaczyc. :P")
     public boolean debug = true;
 
     @Comment("Uzupelnij ponizsze menu danymi.")
-    public StorageConfig storageConfig = new StorageConfig("dreamtemplate");
+    public StorageConfig storageConfig = new StorageConfig("dreamachievements");
 
-    public AchievementsConfig achievementsConfig = new AchievementsConfig();
+    public Map<AchievementType, List<Achievement>> achievementMap;
 
-    @Names(strategy = NameStrategy.HYPHEN_CASE, modifier = NameModifier.TO_LOWER_CASE)
-    public static class AchievementsConfig extends OkaeriConfig {
+    @Comment("Pamiętaj by zmienić sloty jeszcze poniżej!!")
+    public BukkitMenuBuilder achievementMenuBuilder;
 
-        public Map<AchievementType, List<Achievement>> achievementMap;
+    public Map<Integer, AchievementType> achievementTypeSlot = new HashMap<>();
 
-        @Comment("Pamiętaj by zmienić sloty jeszcze poniżej!!")
-        public BukkitMenuBuilder achievementMenuBuilder;
+    public ItemStack premiumCaseItemStack = ItemBuilder.of(XMaterial.CHEST.parseItem())
+            .setName("&7Skrzynka premium")
+            .setLore(
+                    "&8&l| &7Kliknij aby otworzyć skrzynkę premium!"
+            )
+            .toItemStack();
 
-        public Map<Integer, AchievementType> achievementTypeSlot = new HashMap<>();
-
-        public AchievementsConfig() {
-            int i = 10;
-            for (AchievementType value : AchievementType.values()) {
-                this.achievementTypeSlot.put(i, value);
-                i++;
+    public PluginConfig() {
+        int i = 10;
+        for (AchievementType value : AchievementType.values()) {
+            this.achievementTypeSlot.put(i, value);
+            i++;
+        }
+        this.achievementMenuBuilder = new BukkitMenuBuilder("&0&lOsiągnięcia", 3, new MapBuilder<Integer, ItemStack>()
+                .putAll(IntStream.range(0, 27).boxed()
+                        .filter(j -> !this.achievementTypeSlot.containsKey(j))
+                        .collect(
+                                Collectors.toMap(
+                                        j -> j,
+                                        j -> XMaterial.BLACK_STAINED_GLASS_PANE.parseItem(),
+                                        (a, b) -> b)
+                        )
+                )
+                .put(10, ItemBuilder.of(XMaterial.DIAMOND_SWORD.parseMaterial())
+                        .setName("&cZabójstwa #{id}")
+                        .setLore(
+                                "&8&l| &7Postęp: &f{progress}&7/&f{required}",
+                                "&8&l| &7Nagroda: &f{reward}"
+                        )
+                        .toItemStack())
+                .put(11, ItemBuilder.of(XMaterial.SHIELD.parseMaterial())
+                        .setName("&cRanking #{id}")
+                        .setLore(
+                                "&8&l| &7Postęp: &f{progress}&7/&f{required}",
+                                "&8&l| &7Nagroda: &f{reward}"
+                        )
+                        .toItemStack())
+                .put(12, ItemBuilder.of(XMaterial.SKELETON_SKULL.parseItem())
+                        .setName("&fŚmierci #{id}")
+                        .setLore(
+                                "&8&l| &7Postęp: &f{progress}&7/&f{required}",
+                                "&8&l| &7Nagroda: &f{reward}"
+                        )
+                        .toItemStack())
+                .put(13, ItemBuilder.of(XMaterial.CLOCK.parseItem())
+                        .setName("&bSpędzony czas #{id}")
+                        .setLore(
+                                "&8&l| &7Postęp: &f{progress}&7/&f{required}",
+                                "&8&l| &7Nagroda: &f{reward}"
+                        )
+                        .toItemStack())
+                .put(14, ItemBuilder.of(XMaterial.DIAMOND_PICKAXE.parseItem())
+                        .setName("&7Rozkopane bloki #{id}")
+                        .setLore(
+                                "&8&l| &7Postęp: &f{progress}&7/&f{required}",
+                                "&8&l| &7Nagroda: &f{reward}"
+                        )
+                        .toItemStack())
+                .put(15, ItemBuilder.of(XMaterial.TOTEM_OF_UNDYING.parseItem())
+                        .setName("&7Zbite totemy #{id}")
+                        .setLore(
+                                "&8&l| &7Postęp: &f{progress}&7/&f{required}",
+                                "&8&l| &7Nagroda: &f{reward}"
+                        )
+                        .toItemStack())
+                .put(16, ItemBuilder.of(XMaterial.CHEST.parseItem())
+                        .setName("&7Otworzone skrzynki premium #{id}")
+                        .setLore(
+                                "&8&l| &7Postęp: &f{progress}&7/&f{required}",
+                                "&8&l| &7Nagroda: &f{reward}"
+                        )
+                        .toItemStack())
+                .build());
+        this.achievementMap = new HashMap<>();
+        for (AchievementType value : AchievementType.values()) {
+            if (value.equals(AchievementType.SPEND_TIME)) {
+                this.achievementMap.put(value, Collections.singletonList(
+                        Achievement.builder()
+                                .id(1)
+                                .type(value)
+                                .reward(AchievementReward.builder()
+                                        .friendlyName("1x Kompas")
+                                        .itemStack(ItemBuilder.of(Material.COMPASS)
+                                                .toItemStack()
+                                        )
+                                        .build())
+                                .required(TimeUnit.HOURS.toMillis(1))
+                                .build()
+                ));
+                continue;
             }
-            this.achievementMenuBuilder = new BukkitMenuBuilder("&0Osiągnięcia", 3, new MapBuilder<Integer, ItemStack>()
-                    .putAll(IntStream.range(0, 27).boxed()
-                            .collect(
-                                    Collectors.toMap(
-                                            j -> j,
-                                            j -> XMaterial.BLACK_STAINED_GLASS_PANE.parseItem(),
-                                            (a, b) -> b)
-                            )
-                    )
-                    .put(10, ItemBuilder.of(XMaterial.DIAMOND_SWORD.parseMaterial())
-                            .setName("&aZabójstwa")
-                            .toItemStack())
-                    .put(11, ItemBuilder.of(XMaterial.FISHING_ROD.parseMaterial())
-                            .setName("&eZdobyty ranking")
-                            .toItemStack())
-                    .put(12, ItemBuilder.of(XMaterial.PLAYER_HEAD.parseItem())
-                            .setName("&cŚmierci")
-                            .toItemStack())
-                    .build());
-            this.achievementMap = new MapBuilder<AchievementType, List<Achievement>>()
-                    .put(
-                            AchievementType.SPEND_TIME,
-                            Collections.singletonList(
-                                    Achievement.builder()
-                                            .id(1)
-                                            .type(AchievementType.SPEND_TIME)
-                                            .reward(AchievementReward.builder()
-                                                    .friendlyName("1x Kompas")
-                                                    .itemStack(ItemBuilder.of(Material.COMPASS).toItemStack())
-                                                    .build())
-                                            .required(TimeUnit.HOURS.toMillis(1))
-                                            .build()
-                            )
-                    )
-                    .build();
+            this.achievementMap.put(value, Collections.singletonList(
+                    Achievement.builder()
+                            .id(1)
+                            .type(value)
+                            .reward(AchievementReward.builder()
+                                    .friendlyName("1x Kompas")
+                                    .itemStack(ItemBuilder.of(Material.COMPASS)
+                                            .toItemStack()
+                                    )
+                                    .build())
+                            .required(1)
+                            .build()
+            ));
         }
+    }
 
-        public List<Achievement> findByType(AchievementType type) {
-            return this.achievementMap.get(type);
-        }
+    public List<Achievement> findByType(AchievementType type) {
+        return this.achievementMap.get(type);
     }
 
 }

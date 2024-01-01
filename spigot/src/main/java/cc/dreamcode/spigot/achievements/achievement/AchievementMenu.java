@@ -19,7 +19,7 @@ public class AchievementMenu {
     private final BukkitMenuProvider bukkitMenuProvider;
 
     public void open(Player player) {
-        BukkitMenuBuilder menuBuilder = this.pluginConfig.achievementsConfig.achievementMenuBuilder;
+        BukkitMenuBuilder menuBuilder = this.pluginConfig.achievementMenuBuilder;
         BukkitMenu menu = menuBuilder.buildEmpty();
         for (Map.Entry<Integer, ItemStack> entry : menuBuilder.getItems().entrySet()) {
             int slot = entry.getKey();
@@ -28,10 +28,15 @@ public class AchievementMenu {
                 continue;
             }
 
+            AchievementType achievementType = this.pluginConfig.achievementTypeSlot.get(slot);
+            if (achievementType == null) {
+                menu.setItem(slot, item);
+                continue;
+            }
 
+            menu.setItem(slot, item, event -> {
+
+            });
         }
-    }
-
-    private void openAchievements(Player player, AchievementType type) {
     }
 }

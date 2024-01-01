@@ -4,6 +4,7 @@ import cc.dreamcode.command.bukkit.BukkitCommandProvider;
 import cc.dreamcode.menu.bukkit.BukkitMenuProvider;
 import cc.dreamcode.menu.bukkit.okaeri.MenuBuilderSerdes;
 import cc.dreamcode.notice.minecraft.bukkit.serdes.BukkitNoticeSerdes;
+import cc.dreamcode.platform.DreamLogger;
 import cc.dreamcode.platform.DreamVersion;
 import cc.dreamcode.platform.bukkit.DreamBukkitConfig;
 import cc.dreamcode.platform.bukkit.DreamBukkitPlatform;
@@ -21,13 +22,19 @@ import cc.dreamcode.spigot.achievements.achievement.AchievementMenu;
 import cc.dreamcode.spigot.achievements.config.MessageConfig;
 import cc.dreamcode.spigot.achievements.config.PluginConfig;
 import cc.dreamcode.spigot.achievements.listener.PlayerQuitJoinListener;
+import cc.dreamcode.spigot.achievements.listener.PointsChangeListener;
+import cc.dreamcode.spigot.achievements.user.AchievementsUserCache;
 import cc.dreamcode.spigot.achievements.user.AchievementsUserRepository;
+import cc.dreamcode.spigot.achievements.user.AchievementsUserSaveTask;
+import cc.dreamcode.spigot.achievements.user.AchievementsUserSpentTimeTask;
 import eu.okaeri.configs.serdes.OkaeriSerdesPack;
 import eu.okaeri.configs.yaml.bukkit.serdes.SerdesBukkit;
 import eu.okaeri.persistence.document.DocumentPersistence;
 import eu.okaeri.tasker.bukkit.BukkitTasker;
 import lombok.Getter;
 import lombok.NonNull;
+
+import java.util.Optional;
 
 public final class AchievementsPlugin extends DreamBukkitPlatform implements DreamBukkitConfig, DreamPersistence {
 
@@ -67,12 +74,27 @@ public final class AchievementsPlugin extends DreamBukkitPlatform implements Dre
             componentManager.registerComponent(DocumentPersistence.class);
 
             componentManager.registerComponent(AchievementsUserRepository.class);
+            componentManager.registerComponent(AchievementsUserCache.class);
 
             componentManager.registerComponent(PlayerQuitJoinListener.class);
 
             componentManager.registerComponent(AchievementMenu.class);
             componentManager.registerComponent(AchievementCommand.class);
             componentManager.registerComponent(AchievementListener.class);
+
+            componentManager.registerComponent(AchievementsUserSaveTask.class);
+            componentManager.registerComponent(AchievementsUserSpentTimeTask.class);
+
+            Optional.ofNullable(this.getServer().getPluginManager().getPlugin("FunnyGuilds"))
+                    .ifPresent(plugin -> {
+                        componentManager.registerComponent(PointsChangeListener.class);
+                        getInject(DreamLogger.class).ifPresent(dreamLogger -> dreamLogger.info("FunnyGuilds found, hooking into FunnyGuilds"));
+                    });
+            Optional.ofNullable(this.getServer().getPluginManager().getPlugin("PlaceholderAPI"))
+                    .ifPresent(plugin -> {
+                        componentManager.registerComponent(PointsChangeListener.class);
+                        getInject(DreamLogger.class).ifPresent(dreamLogger -> dreamLogger.info("FunnyGuilds found, hooking into FunnyGuilds"));
+                    });
         });
     }
 
