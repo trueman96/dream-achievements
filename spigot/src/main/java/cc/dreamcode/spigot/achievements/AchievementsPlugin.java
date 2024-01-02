@@ -27,6 +27,7 @@ import cc.dreamcode.spigot.achievements.user.AchievementsUserCache;
 import cc.dreamcode.spigot.achievements.user.AchievementsUserRepository;
 import cc.dreamcode.spigot.achievements.user.AchievementsUserSaveTask;
 import cc.dreamcode.spigot.achievements.user.AchievementsUserSpentTimeTask;
+import cc.dreamcode.utilities.optional.CustomOptional;
 import eu.okaeri.configs.serdes.OkaeriSerdesPack;
 import eu.okaeri.configs.yaml.bukkit.serdes.SerdesBukkit;
 import eu.okaeri.persistence.document.DocumentPersistence;
@@ -85,16 +86,16 @@ public final class AchievementsPlugin extends DreamBukkitPlatform implements Dre
             componentManager.registerComponent(AchievementsUserSaveTask.class);
             componentManager.registerComponent(AchievementsUserSpentTimeTask.class);
 
-            Optional.ofNullable(this.getServer().getPluginManager().getPlugin("FunnyGuilds"))
-                    .ifPresent(plugin -> {
+            CustomOptional.ofNullable(this.getServer().getPluginManager().getPlugin("FunnyGuilds"))
+                    .ifPresentOrElse(plugin -> {
                         componentManager.registerComponent(PointsChangeListener.class);
                         getInject(DreamLogger.class).ifPresent(dreamLogger -> dreamLogger.info("FunnyGuilds found, hooking into FunnyGuilds"));
-                    });
-            Optional.ofNullable(this.getServer().getPluginManager().getPlugin("PlaceholderAPI"))
-                    .ifPresent(plugin -> {
+                    }, () -> getInject(DreamLogger.class).ifPresent(dreamLogger -> dreamLogger.info("FunnyGuilds not found, skipping FunnyGuilds hook")));
+            CustomOptional.ofNullable(this.getServer().getPluginManager().getPlugin("PlaceholderAPI"))
+                    .ifPresentOrElse(plugin -> {
                         componentManager.registerComponent(PointsChangeListener.class);
                         getInject(DreamLogger.class).ifPresent(dreamLogger -> dreamLogger.info("PlaceholderAPI found, hooking into PlaceholderAPI"));
-                    });
+                    }, () -> getInject(DreamLogger.class).ifPresent(dreamLogger -> dreamLogger.info("PlaceholderAPI not found, skipping PlaceholderAPI hook")));
         });
     }
 

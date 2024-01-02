@@ -57,6 +57,7 @@ public class PluginConfig extends OkaeriConfig {
             .toItemStack();
 
     public String availableReceive = "&aMożliwość odbioru nagrody, kliknij aby odebrać!", notReadyReceive = "&cNagroda nie jest jeszcze dostępna.";
+    public String alreadyReceived = "&cNagroda została już odebrana!";
 
     public PluginConfig() {
         int i = 10;

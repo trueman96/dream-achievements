@@ -18,7 +18,9 @@ import org.bukkit.inventory.ItemStack;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor(onConstructor_ = @Inject)
 public class AchievementMenu {
@@ -52,10 +54,12 @@ public class AchievementMenu {
                         Achievement achievement = this.pluginConfig.achievementMap.computeIfAbsent(achievementType, k -> new ArrayList<>())
                                 .stream()
                                 .filter(a -> a.getRequired() > progress)
-                                .findFirst().orElse(null), toReceive = this.pluginConfig.achievementMap.computeIfAbsent(achievementType, k -> new ArrayList<>())
+                                .min(Comparator.comparingLong(Achievement::getId))
+                                .orElse(null), toReceive = this.pluginConfig.achievementMap.computeIfAbsent(achievementType, k -> new ArrayList<>())
                                 .stream()
                                 .filter(a -> a.getRequired() <= progress)
-                                .findFirst().orElse(null);
+                                .max(Comparator.comparingLong(Achievement::getRequired))
+                                .orElse(null);
                         if (toReceive != null && !user.isAchievementClaimed(toReceive)) {
                             menu.setItem(slot, ItemBuilder.of(item)
                                     .fixColors(new MapBuilder<String, Object>()
@@ -80,17 +84,35 @@ public class AchievementMenu {
                             continue;
                         }
 
-                        if (achievement == null) {
-                            achievement = this.pluginConfig.achievementMap.computeIfAbsent(achievementType, k -> new ArrayList<>()).get(0);
-                            if (achievement == null) {
-                                this.messageConfig.noAchievementsForType.send(player, new MapBuilder<String, Object>()
-                                        .put("type", achievementType.name())
+                        if (achievement == null && toReceive != null && user.isAchievementClaimed(toReceive)) {
+                            menu.setItem(slot, ItemBuilder.of(item)
+                                    .fixColors(new MapBuilder<String, Object>()
+                                            .put("id", toReceive.getId())
+                                            .put("reward", toReceive.getReward().getFriendlyName())
+                                            .put("progress", toReceive.getType().equals(AchievementType.SPEND_TIME)
+                                                    ? TimeUtil.convertDurationSeconds(Duration.ofMillis(progress)) : progress)
+                                            .put("required", toReceive.getType().equals(AchievementType.SPEND_TIME)
+                                                    ? TimeUtil.convertDurationSeconds(Duration.ofMillis(toReceive.getRequired())) : toReceive.getRequired())
+                                            .put("available-receive", this.pluginConfig.alreadyReceived)
+                                            .build())
+                                    .toItemStack(), event -> {
+                                player.closeInventory();
+                                AchievementReward reward = toReceive.getReward();
+                                this.messageConfig.alreadyReceivedReward.send(player, new MapBuilder<String, Object>()
+                                        .put("reward", reward.getFriendlyName())
+                                        .put("achievement", toReceive.getUniqueId())
                                         .build());
-                                return;
-                            }
+                            });
+                            continue;
                         }
 
-                        Achievement finalAchievement = achievement;
+                        if (achievement == null) {
+                            this.messageConfig.noAchievementsForType.send(player, new MapBuilder<String, Object>()
+                                    .put("type", achievementType.name())
+                                    .build());
+                            return;
+                        }
+
                         menu.setItem(slot, ItemBuilder.of(item)
                                 .fixColors(new MapBuilder<String, Object>()
                                         .put("id", achievement.getId())
@@ -102,12 +124,12 @@ public class AchievementMenu {
                                         .put("available-receive", this.pluginConfig.notReadyReceive)
                                         .build())
                                 .toItemStack(), event -> this.messageConfig.cannotReceive.send(player, new MapBuilder<String, Object>()
-                                .put("achievement", finalAchievement.getUniqueId())
-                                .put("reward", finalAchievement.getReward().getFriendlyName())
-                                .put("progress", finalAchievement.getType().equals(AchievementType.SPEND_TIME)
+                                .put("achievement", achievement.getUniqueId())
+                                .put("reward", achievement.getReward().getFriendlyName())
+                                .put("progress", achievement.getType().equals(AchievementType.SPEND_TIME)
                                         ? TimeUtil.convertDurationSeconds(Duration.ofMillis(progress)) : progress)
-                                .put("required", finalAchievement.getType().equals(AchievementType.SPEND_TIME)
-                                        ? TimeUtil.convertDurationSeconds(Duration.ofMillis(finalAchievement.getRequired())) : finalAchievement.getRequired())
+                                .put("required", achievement.getType().equals(AchievementType.SPEND_TIME)
+                                        ? TimeUtil.convertDurationSeconds(Duration.ofMillis(achievement.getRequired())) : achievement.getRequired())
                                 .build()));
                     }
                 })
