@@ -8,14 +8,15 @@ import com.cryptomorin.xseries.XMaterial;
 import eu.okaeri.injector.annotation.Inject;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityResurrectEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 
 @RequiredArgsConstructor(onConstructor_ = @Inject)
@@ -76,44 +77,37 @@ public class AchievementListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerItemConsumeEvent(PlayerItemConsumeEvent event) {
-        Player source = event.getPlayer();
-        if (source == null) {
+    public void onEntityResurrectEvent(EntityResurrectEvent event) {
+        Entity entity = event.getEntity();
+        if (!(entity instanceof Player)) {
             return;
         }
 
-        ItemStack item = event.getItem();
-        Material material;
-        try {
-            material = XMaterial.TOTEM_OF_UNDYING.parseMaterial();
-        } catch (Exception e) {
+        Player source = (Player) entity;
+        if (this.pluginConfig.debug) {
+            this.dreamLogger.info("EntityResurrectEvent: " + source.getName() + " consumed totem");
+        }
+
+        ItemStack item = source.getItemInHand();
+        Material material = XMaterial.TOTEM_OF_UNDYING.parseMaterial();
+        if (item == null || item.getType().equals(Material.AIR) || !item.getType().equals(material)) {
             if (this.pluginConfig.debug) {
-                this.dreamLogger.info(
-                        "PlayerItemConsumeEvent: " + source.getName() + " couldn't find totem!!");
+                this.dreamLogger.info("EntityResurrectEvent: item " + source.getName() + " is null");
             }
-            return;
-        }
-
-        if (material == null) {
-            if (this.pluginConfig.debug) {
-                this.dreamLogger.info(
-                        "PlayerItemConsumeEvent: " + source.getName() + " couldn't find totem!!");
-            }
-            return;
-        }
-
-        if (item == null || !item.getType().equals(material)) {
             return;
         }
 
         AchievementsUser user = this.achievementsUserCache.findByUniqueId(source.getUniqueId());
         if (user == null) {
+            if (this.pluginConfig.debug) {
+                this.dreamLogger.info("EntityResurrectEvent: user " + source.getName() + " is null");
+            }
             return;
         }
 
         user.addAchievementProgress(AchievementType.BEATEN_TOTEMS, 1);
         if (this.pluginConfig.debug) {
-            this.dreamLogger.info("PlayerItemConsumeEvent: " + source.getName() + " consumed totem");
+            this.dreamLogger.info("EntityResurrectEvent: " + source.getName() + " added progress");
         }
     }
 

@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import net.dzikoysk.funnyguilds.event.rank.PointsChangeEvent;
 import net.dzikoysk.funnyguilds.user.User;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import panda.std.Option;
 
 @RequiredArgsConstructor(onConstructor_ = @Inject)
 public class PointsChangeListener implements Listener {
@@ -19,9 +21,15 @@ public class PointsChangeListener implements Listener {
     private final PluginConfig pluginConfig;
     private final DreamLogger dreamLogger;
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void handle(PointsChangeEvent event) {
-        User user = event.getDoer().get();
+        Option<User> userOption = event.getDoer();
+        if (userOption.isEmpty()) {
+            this.dreamLogger.warning("PointsChangeEvent: userOption is empty");
+            return;
+        }
+
+        User user = userOption.get();
         AchievementsUser achievementsUser = this.achievementsUserCache.findByUniqueId(user.getUUID());
         if (achievementsUser == null) {
             return;
